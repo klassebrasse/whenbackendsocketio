@@ -64,22 +64,22 @@ io.on('connection', (socket) => {
     })
     console.log('a user connected', socket.id);
 
-    socket.on('join room and get lobby data', async (lobbyId, callback) => {
-        socket.join(lobbyId);
-        console.log("User connected to Room" + lobbyId)
-
+    socket.on('create lobby', async (socketLobbyId) => {
         newLobby = lobbyData;
+        newLobby.id = socketLobbyId
         if (newLobby.cardDecks.length < 4){
             newLobby.cardDecks.push(await getHistorical('sweden'));
             newLobby.cardDecks.push(await getHistorical('sports'));
             newLobby.cardDecks.push(await getHistorical('country'));
             newLobby.cardDecks.push(await getHistorical('tech'));
-
-
         }
+        socket.emit('lobby created', socketLobbyId);
+    })
 
+    socket.on('get lobby data', (lobbyData, dealFirstCards, callback) => {
+        if(dealFirstCards){
         let index = 0;
-        await newLobby.players.forEach(p => {
+        newLobby.players.forEach(p => {
             if(p.cards.length < 1){
                 let c = newLobby.cardDecks[0].cards[index]
                 c.isSafe = true;
@@ -88,20 +88,42 @@ io.on('connection', (socket) => {
             }
             index++;
         })
-
-        //console.log(newLobby)
-        await callback({
-            lobby: lobbyData,
+        }
+        callback({
+            lobby: newLobby
         })
     })
+    socket.on('join room and get lobby data', async (lobbyId, username, id) => {
+        socket.join(lobbyId)
+        console.log("User connected to Room" + lobbyId)
+        newLobby.players.push({id: id, cards: [], nickname: username, score: 0})
+/*        let index = 0;
+        await newLobby.players.forEach(p => {
+            if(p.cards.length < 1){
+                let c = newLobby.cardDecks[0].cards[index]
+                c.isSafe = true;
+                c.color = 'green';
+                p.cards.push(c);
+            }
+            index++;
+        })*/
+
+        io.to(lobbyId).emit('new user joined', newLobby)
+    })
+
+    socket.on('start game', lobbyId => {
+        io.to(lobbyId).emit('play', lobbyId)
+    })
+
+    //Game Logic
     socket.on('random card', (lobbyId) => {
         newLobby = randomCard(newLobby);
         console.log("hej")
-        io.to('234').emit('random card', newLobby)
+        io.to(lobbyId).emit('random card', newLobby)
     })
     socket.on('change turn', (lobbyId) => {
         newLobby = changeTurn(newLobby);
-        io.to('234').emit('turn changed', newLobby)
+        io.to(lobbyId).emit('turn changed', newLobby)
     })
     socket.on('guess before', (lobbyId, index, pid) => {
         console.log(io.engine.clientsCount)
@@ -125,7 +147,7 @@ io.on('connection', (socket) => {
             console.log('fel')
         }
 
-        io.to('234').emit('guess checked', newLobby, guessIs)
+        io.to(lobbyId).emit('guess checked', newLobby, guessIs)
 
     })
 
@@ -172,7 +194,7 @@ io.on('connection', (socket) => {
                 console.log('fel')
             }
         }
-        io.to('234').emit('guess checked', newLobby, guessIs)
+        io.to(lobbyId).emit('guess checked', newLobby, guessIs)
     })
 
 });
