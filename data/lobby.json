@@ -1,0 +1,48 @@
+
+  {
+    "id": "234",
+    "gameName": "Uno",
+    "players": [
+      {
+        "id": "123",
+        "nickname": "KlasseBrasse",
+        "score": 0,
+        "cards": [
+
+        ]
+      },
+      {
+        "id": "234",
+        "nickname": "Jöjje",
+        "score": 0,
+        "cards": [
+
+        ]
+      },
+      {
+        "id": "345",
+        "nickname": "Jöns",
+        "score": 0,
+        "cards": [
+
+        ]
+      },
+      {
+        "id": "999",
+        "nickname": "MainPlayer",
+        "score": 0,
+        "cards": [
+
+        ]
+      }
+    ],
+    "currentTurn": 0,
+    "cardDecks": [],
+    "currentCard": {},
+    "currentHistoryCardDeckIndex": 0,
+    "currentSportsCardDeckIndex": 0,
+    "currentTechCardDeckIndex": 0,
+    "currentCountryCardDeckIndex": 0,
+    "currentCat": ""
+
+  }
