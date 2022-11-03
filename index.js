@@ -118,6 +118,8 @@ io.on('connection', (socket) => {
     //Game Logic
     socket.on('random card', (lobbyId) => {
         newLobby = randomCard(newLobby);
+        const clients = io.sockets.adapter.rooms.get(lobbyId);
+        console.log(clients.size)
         console.log("hej")
         io.to(lobbyId).emit('random card', newLobby)
     })
@@ -126,7 +128,6 @@ io.on('connection', (socket) => {
         io.to(lobbyId).emit('turn changed', newLobby)
     })
     socket.on('guess before', (lobbyId, index, pid) => {
-        console.log(io.engine.clientsCount)
         console.log("guess before")
         let guessIs;
 
@@ -147,12 +148,12 @@ io.on('connection', (socket) => {
             console.log('fel')
         }
 
+        console.log('emitting: guess checked')
         io.to(lobbyId).emit('guess checked', newLobby, guessIs)
 
     })
 
     socket.on('guess after', (lobbyId, index, pid) => {
-
         let guessIs;
 
         const playerCards = newLobby.players.find(p => p.id === pid).cards;
@@ -180,7 +181,7 @@ io.on('connection', (socket) => {
             console.log('kort index' + index)
             console.log(newLobby.currentCard.year > playerCards[index].year)
             console.log(newLobby.currentCard.year < playerCards[index + 1].year)
-            if ((newLobby.currentCard.year > playerCards[index].year && newLobby.currentCard.year < playerCards[index + 1].year) || (newLobby.currentCard.year === playerCards[index].year && newLobby.currentCard.year === playerCards[index + 1].year)){
+            if ((newLobby.currentCard.year > playerCards[index].year && newLobby.currentCard.year < playerCards[index + 1].year) || newLobby.currentCard.year === playerCards[index].year || newLobby.currentCard.year === playerCards[index + 1].year){
                 console.log('rätt')
                 newLobby.currentCard.isSafe = false;
                 newLobby.players[playerIndex].cards.push(newLobby.currentCard);
@@ -194,6 +195,7 @@ io.on('connection', (socket) => {
                 console.log('fel')
             }
         }
+        console.log('emitting: guess checked to, ' + lobbyId)
         io.to(lobbyId).emit('guess checked', newLobby, guessIs)
     })
 
@@ -245,7 +247,7 @@ function randomCard(lobby){
 
 function changeTurn(lobby){
     lobby.players[lobby.currentTurn].cards.forEach(c => c.isSafe = true)
-    if (lobby.currentTurn === 3){
+    if (lobby.currentTurn === (lobby.players.length - 1)){
         lobby.currentTurn = 0;
     }
     else {
