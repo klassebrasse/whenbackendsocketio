@@ -203,9 +203,7 @@ io.on('connection', (socket) => {
         console.log("User connected to Room" + lobbyId)
         const lobbyIndex = getLobbyIndexById(lobbyId);
         console.log('get lobby data    --    ' + lobbyIndex)
-/*        console.log(lobbyIndex)
-        console.log(lobbies)
-        if(dealFirstCards){
+/*        if(dealFirstCards){
             let index = 0;
             lobbies[lobbyIndex].players.forEach(p => {
                 if(p.cards.length < 1){
@@ -233,6 +231,19 @@ io.on('connection', (socket) => {
     })
 
     socket.on('start game', lobbyId => {
+        const lobbyIndex = getLobbyIndexById(lobbyId);
+
+        let index = 0;
+        lobbies[lobbyIndex].players.forEach(p => {
+            if(p.cards.length < 1){
+                let c = lobbies[lobbyIndex].cardDecks[0].cards[index]
+                c.isSafe = true;
+                c.color = 'green';
+                p.cards.push(c);
+            }
+            index++;
+        })
+
         io.to(lobbyId).emit('play', lobbyId)
     })
 
