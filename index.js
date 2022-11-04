@@ -55,7 +55,110 @@ let lobby =
         "cards": [],
 
     };
-let newLobby;
+//let newLobby;
+let lobbies = [    {
+    "id": "234",
+    "gameName": "Uno",
+    "players": [
+        {
+            "id": "Klas",
+            "nickname": "Klas",
+            "score": 999,
+            "cards": []
+        },
+        {
+            "id": "Hasse",
+            "nickname": "Hasse",
+            "score": 2222,
+            "cards": []
+        },
+        {
+            "id": "Rogge",
+            "nickname": "Rogge",
+            "score": 32,
+            "cards": []
+        },
+        {
+            "id": "999",
+            "nickname": "MainPlayer",
+            "score": 32,
+            "cards": []
+        }
+    ],
+    "currentTurn": 0,
+    "cards": [],
+
+},
+    {
+        "id": "234",
+        "gameName": "Uno",
+        "players": [
+            {
+                "id": "Klas",
+                "nickname": "Klas",
+                "score": 999,
+                "cards": []
+            },
+            {
+                "id": "Hasse",
+                "nickname": "Hasse",
+                "score": 2222,
+                "cards": []
+            },
+            {
+                "id": "Rogge",
+                "nickname": "Rogge",
+                "score": 32,
+                "cards": []
+            },
+            {
+                "id": "999",
+                "nickname": "MainPlayer",
+                "score": 32,
+                "cards": []
+            }
+        ],
+        "currentTurn": 0,
+        "cards": [],
+
+    },
+    {
+        "id": "JAA BRA DETTA ÖR INDEX 3",
+        "gameName": "Uno",
+        "players": [
+            {
+                "id": "Klas",
+                "nickname": "Klas",
+                "score": 999,
+                "cards": []
+            },
+            {
+                "id": "Hasse",
+                "nickname": "Hasse",
+                "score": 2222,
+                "cards": []
+            },
+            {
+                "id": "Rogge",
+                "nickname": "Rogge",
+                "score": 32,
+                "cards": []
+            },
+            {
+                "id": "999",
+                "nickname": "MainPlayer",
+                "score": 32,
+                "cards": []
+            }
+        ],
+        "currentTurn": 0,
+        "cards": [],
+
+    }];
+
+function getLobbyIndexById(lobbyId) {
+    return lobbies.findIndex(l => l.id === lobbyId)
+}
 
 io.on('connection', (socket) => {
     socket.on('disconnect', () => {
@@ -65,50 +168,68 @@ io.on('connection', (socket) => {
     console.log('a user connected', socket.id);
 
     socket.on('create lobby', async (socketLobbyId) => {
-        newLobby = lobbyData;
-        newLobby.id = socketLobbyId
-        if (newLobby.cardDecks.length < 4){
-            newLobby.cardDecks.push(await getHistorical('sweden'));
-            newLobby.cardDecks.push(await getHistorical('sports'));
-            newLobby.cardDecks.push(await getHistorical('country'));
-            newLobby.cardDecks.push(await getHistorical('tech'));
+
+        lobbies.push({
+            id: socketLobbyId,
+            gameName: "Uno",
+            players: [
+
+            ],
+            currentTurn: 0,
+            cardDecks: [],
+            currentCard: {},
+            currentHistoryCardDeckIndex: 0,
+            currentSportsCardDeckIndex: 0,
+            currentTechCardDeckIndex: 0,
+            currentCountryCardDeckIndex: 0,
+            currentCat: ""
+
+        });
+
+        const lobbyIndex = getLobbyIndexById(socketLobbyId);
+        console.log("VETTE FAN: " + lobbies[getLobbyIndexById("JAA BRA DETTA ÖR INDEX 3")].id)
+
+        if (lobbies[lobbyIndex].cardDecks.length < 4){
+            lobbies[lobbyIndex].cardDecks.push(await getHistorical('sweden'));
+            lobbies[lobbyIndex].cardDecks.push(await getHistorical('sports'));
+            lobbies[lobbyIndex].cardDecks.push(await getHistorical('country'));
+            lobbies[lobbyIndex].cardDecks.push(await getHistorical('tech'));
         }
         socket.emit('lobby created', socketLobbyId);
     })
 
-    socket.on('get lobby data', (lobbyData, dealFirstCards, callback) => {
-        if(dealFirstCards){
-        let index = 0;
-        newLobby.players.forEach(p => {
-            if(p.cards.length < 1){
-                let c = newLobby.cardDecks[0].cards[index]
-                c.isSafe = true;
-                c.color = 'green';
-                p.cards.push(c);
-            }
-            index++;
-        })
-        }
-        callback({
-            lobby: newLobby
-        })
-    })
-    socket.on('join room and get lobby data', async (lobbyId, username, id) => {
+    socket.on('get lobby data', (lobbyId, dealFirstCards, callback) => {
         socket.join(lobbyId)
         console.log("User connected to Room" + lobbyId)
-        newLobby.players.push({id: id, cards: [], nickname: username, score: 0})
-/*        let index = 0;
-        await newLobby.players.forEach(p => {
-            if(p.cards.length < 1){
-                let c = newLobby.cardDecks[0].cards[index]
-                c.isSafe = true;
-                c.color = 'green';
-                p.cards.push(c);
-            }
-            index++;
-        })*/
+        const lobbyIndex = getLobbyIndexById(lobbyId);
+        console.log('get lobby data    --    ' + lobbyIndex)
+/*        console.log(lobbyIndex)
+        console.log(lobbies)
+        if(dealFirstCards){
+            let index = 0;
+            lobbies[lobbyIndex].players.forEach(p => {
+                if(p.cards.length < 1){
+                    let c = lobbies[lobbyIndex].cardDecks[0].cards[index]
+                    c.isSafe = true;
+                    c.color = 'green';
+                    p.cards.push(c);
+                }
+                index++;
+            })
+        }
+        */
+        callback({
+            lobby: lobbies[lobbyIndex]
+        })
+    })
+    socket.on('join room and get lobby data', async (lobbyId, username, playerId) => {
 
-        io.to(lobbyId).emit('new user joined', newLobby)
+        const lobbyIndex = getLobbyIndexById(lobbyId);
+        console.log('join room and get lobby data ----------------------||       ' + lobbyIndex)
+        lobbies[lobbyIndex].players.push({id: playerId, cards: [], nickname: username, score: 0})
+
+
+        io.to(lobbyId).emit('new user joined', lobbies[lobbyIndex])
     })
 
     socket.on('start game', lobbyId => {
@@ -117,86 +238,88 @@ io.on('connection', (socket) => {
 
     //Game Logic
     socket.on('random card', (lobbyId) => {
-        newLobby = randomCard(newLobby);
-        const clients = io.sockets.adapter.rooms.get(lobbyId);
-        console.log(clients.size)
-        console.log("hej")
-        io.to(lobbyId).emit('random card', newLobby)
+        const lobbyIndex = getLobbyIndexById(lobbyId);
+        lobbies[lobbyIndex] = randomCard(lobbies[lobbyIndex]);
+        io.to(lobbyId).emit('random card', lobbies[lobbyIndex])
     })
     socket.on('change turn', (lobbyId) => {
-        newLobby = changeTurn(newLobby);
-        io.to(lobbyId).emit('turn changed', newLobby)
+        const lobbyIndex = getLobbyIndexById(lobbyId);
+        lobbies[lobbyIndex] = changeTurn(lobbies[lobbyIndex]);
+        io.to(lobbyId).emit('turn changed', lobbies[lobbyIndex])
     })
     socket.on('guess before', (lobbyId, index, pid) => {
+        const lobbyIndex = getLobbyIndexById(lobbyId);
+
         console.log("guess before")
         let guessIs;
 
-        const playerCards = newLobby.players.find(p => p.id === pid).cards;
-        const playerIndex = newLobby.players.findIndex(p => p.id === pid);
-        if (newLobby.currentCard.year < playerCards[index].year || newLobby.currentCard.year === playerCards[index].year){
-            newLobby.currentCard.isSafe = false;
-            newLobby.players[playerIndex].cards.push(newLobby.currentCard);
-            newLobby.players[playerIndex].cards.sort((a, b) => parseInt(a.year) - parseInt(b.year))
+        const playerCards = lobbies[lobbyIndex].players.find(p => p.id === pid).cards;
+        const playerIndex = lobbies[lobbyIndex].players.findIndex(p => p.id === pid);
+        if (lobbies[lobbyIndex].currentCard.year < playerCards[index].year || lobbies[lobbyIndex].currentCard.year === playerCards[index].year){
+            lobbies[lobbyIndex].currentCard.isSafe = false;
+            lobbies[lobbyIndex].players[playerIndex].cards.push(lobbies[lobbyIndex].currentCard);
+            lobbies[lobbyIndex].players[playerIndex].cards.sort((a, b) => parseInt(a.year) - parseInt(b.year))
             guessIs = true;
             console.log('rätt')
         }
         else {
-            newLobby.players[playerIndex].cards = newLobby.players[playerIndex].cards.filter(c => c.isSafe === true);
+            lobbies[lobbyIndex].players[playerIndex].cards = lobbies[lobbyIndex].players[playerIndex].cards.filter(c => c.isSafe === true);
             console.log('else')
-            newLobby = changeTurn(newLobby)
+            lobbies[lobbyIndex] = changeTurn(lobbies[lobbyIndex])
             guessIs = false;
             console.log('fel')
         }
 
         console.log('emitting: guess checked')
-        io.to(lobbyId).emit('guess checked', newLobby, guessIs)
+        io.to(lobbyId).emit('guess checked', lobbies[lobbyIndex], guessIs)
 
     })
 
     socket.on('guess after', (lobbyId, index, pid) => {
+        const lobbyIndex = getLobbyIndexById(lobbyId);
         let guessIs;
 
-        const playerCards = newLobby.players.find(p => p.id === pid).cards;
-        const playerIndex = newLobby.players.findIndex(p => p.id === pid);
+        const playerCards = lobbies[lobbyIndex].players.find(p => p.id === pid).cards;
+        const playerIndex = lobbies[lobbyIndex].players.findIndex(p => p.id === pid);
         //If last card
         if (playerCards.length === index + 1){
-            if (newLobby.currentCard.year > playerCards[index].year || newLobby.currentCard.year === playerCards[index].year){
+            if (lobbies[lobbyIndex].currentCard.year > playerCards[index].year || lobbies[lobbyIndex].currentCard.year === playerCards[index].year){
                 console.log('rätt')
-                newLobby.currentCard.isSafe = false;
-                newLobby.players[playerIndex].cards.push(newLobby.currentCard);
-                newLobby.players[playerIndex].cards.sort((a, b) => parseInt(a.year) - parseInt(b.year))
+                lobbies[lobbyIndex].currentCard.isSafe = false;
+                lobbies[lobbyIndex].players[playerIndex].cards.push(lobbies[lobbyIndex].currentCard);
+                lobbies[lobbyIndex].players[playerIndex].cards.sort((a, b) => parseInt(a.year) - parseInt(b.year))
                 guessIs = true;
 
             }
             else {
-                newLobby.players[playerIndex].cards = newLobby.players[playerIndex].cards.filter(c => c.isSafe === true);
-                newLobby = changeTurn(newLobby)
+                lobbies[lobbyIndex].players[playerIndex].cards = lobbies[lobbyIndex].players[playerIndex].cards.filter(c => c.isSafe === true);
+                lobbies[lobbyIndex] = changeTurn(lobbies[lobbyIndex])
                 guessIs = false;
                 console.log('fel')
             }
         }
         else {
             console.table(playerCards)
-            console.log('det rätta året' + newLobby.currentCard.year)
+            console.log('det rätta året' + lobbies[lobbyIndex].currentCard.year)
             console.log('kort index' + index)
-            console.log(newLobby.currentCard.year > playerCards[index].year)
-            console.log(newLobby.currentCard.year < playerCards[index + 1].year)
-            if ((newLobby.currentCard.year > playerCards[index].year && newLobby.currentCard.year < playerCards[index + 1].year) || newLobby.currentCard.year === playerCards[index].year || newLobby.currentCard.year === playerCards[index + 1].year){
+            console.log(lobbies[lobbyIndex].currentCard.year > playerCards[index].year)
+            console.log(lobbies[lobbyIndex].currentCard.year < playerCards[index + 1].year)
+            if ((lobbies[lobbyIndex].currentCard.year > playerCards[index].year && lobbies[lobbyIndex].currentCard.year < playerCards[index + 1].year) || lobbies[lobbyIndex].currentCard.year === playerCards[index].year || lobbies[lobbyIndex].currentCard.year === playerCards[index + 1].year){
                 console.log('rätt')
-                newLobby.currentCard.isSafe = false;
-                newLobby.players[playerIndex].cards.push(newLobby.currentCard);
-                newLobby.players[playerIndex].cards.sort((a, b) => parseInt(a.year) - parseInt(b.year))
+                lobbies[lobbyIndex].currentCard.isSafe = false;
+                lobbies[lobbyIndex].players[playerIndex].cards.push(lobbies[lobbyIndex].currentCard);
+                lobbies[lobbyIndex].players[playerIndex].cards.sort((a, b) => parseInt(a.year) - parseInt(b.year))
                 guessIs = true;
             }
             else {
-                newLobby.players[playerIndex].cards = newLobby.players[playerIndex].cards.filter(c => c.isSafe === true);
-                newLobby = changeTurn(newLobby)
+                lobbies[lobbyIndex].players[playerIndex].cards = lobbies[lobbyIndex].players[playerIndex].cards.filter(c => c.isSafe === true);
+                lobbies[lobbyIndex] = changeTurn(lobbies[lobbyIndex])
                 guessIs = false;
                 console.log('fel')
             }
         }
         console.log('emitting: guess checked to, ' + lobbyId)
-        io.to(lobbyId).emit('guess checked', newLobby, guessIs)
+        io.to(lobbyId).emit('guess checked', lobbies[lobbyIndex], guessIs)
     })
 
 });
